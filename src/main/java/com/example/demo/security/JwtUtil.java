@@ -6,6 +6,8 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.security.Key;
 @Component
 public class JwtUtil {
@@ -13,9 +15,11 @@ public class JwtUtil {
 	 private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 	  private static final long TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
 	  public String generateToken(String username) {
+		  Map<String, Object> claims = new HashMap<>();
 	        return Jwts.builder()
+	        		.setClaims(claims)
 	                .setSubject(username)
-	                .setIssuedAt(new Date())
+	                .setIssuedAt(new Date(System.currentTimeMillis()))
 	                .setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY))
 	                .signWith(SECRET_KEY) // Use secure key
 	                .compact();
@@ -29,10 +33,9 @@ public class JwtUtil {
 	     */
 	  public boolean validateToken(String token) {
 		    try {
-		        Claims claims = Jwts.parser()
+		        Claims claims = Jwts.parserBuilder()
 		                .setSigningKey(SECRET_KEY) // Use your secret key
-		                .parseClaimsJws(token)
-		                .getBody();
+		                .build().parseClaimsJws(token).getBody();
 		        return claims.getExpiration().after(new Date()); // Check if token is not expired
 		    } catch (JwtException | IllegalArgumentException e) {
 		        return false; // Token is invalid
@@ -40,7 +43,7 @@ public class JwtUtil {
 		}
 
     public String extractUsername(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody().getSubject();
     }
 
   

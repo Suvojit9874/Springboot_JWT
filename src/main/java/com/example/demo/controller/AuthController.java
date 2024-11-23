@@ -40,12 +40,12 @@ public class AuthController {
 	     * @return JWT token if authentication is successful.
 	     */
 	    @PostMapping("/login")
-	    public String login(@RequestParam String username, @RequestParam String password) {
+	    public String login(@RequestBody SignupRequest signupRequest) {
 	        try {
 	            // Authenticate the user
-	            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+	            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signupRequest.getUsername(), signupRequest.getPassword()));
 	            // Generate and return JWT
-	            return jwtUtil.generateToken(username);
+	            return jwtUtil.generateToken(signupRequest.getUsername());
 	        } catch (AuthenticationException e) {
 	            throw new RuntimeException("Invalid credentials");
 	        }
