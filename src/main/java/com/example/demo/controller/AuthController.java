@@ -1,83 +1,37 @@
 package com.example.demo.controller;
 
-import com.example.demo.models.SignupRequest;
 import com.example.demo.models.User;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.security.JwtUtil;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.demo.service.AuthService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-	 private final AuthenticationManager authenticationManager;
-	    private final JwtUtil jwtUtil;
-	    private final UserRepository userRepository;
-	    private final PasswordEncoder passwordEncoder;
 
-	    public AuthController(
-	            AuthenticationManager authenticationManager,
-	            JwtUtil jwtUtil,
-	            UserRepository userRepository,
-	            PasswordEncoder passwordEncoder) {
-	        this.authenticationManager = authenticationManager;
-	        this.jwtUtil = jwtUtil;
-	        this.userRepository = userRepository;
-	        this.passwordEncoder = passwordEncoder;
-	    }
+	private final AuthService authService;
 
-	    /**
-	     * Login endpoint for generating JWT.
-	     * @param username User's username.
-	     * @param password User's password.
-	     * @return JWT token if authentication is successful.
-	     */
-	    @PostMapping("/login")
-	    public String login(@RequestBody SignupRequest signupRequest) {
-	        try {
-	            // Authenticate the user
-	            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signupRequest.getUsername(), signupRequest.getPassword()));
-	            // Generate and return JWT
-	            return jwtUtil.generateToken(signupRequest.getUsername());
-	        } catch (AuthenticationException e) {
-	            throw new RuntimeException("Invalid credentials");
-	        }
-	    }
+	public AuthController(AuthService authService) {
+		this.authService = authService;
+	}
 
-	    /**
-	     * Signup endpoint for registering new users.
-	     * @param signupRequest Request body containing username, password, and roles.
-	     * @return Success or error message.
-	     */
-	    @PostMapping("/signup")
-	    public String signup(@RequestBody SignupRequest signupRequest) {
-	        // Check if username already exists
-	        if (userRepository.findByUsername(signupRequest.getUsername()).isPresent()) {
-	            return "Error: Username is already taken!";
-	        }
+	/**
+	 * Login endpoint for user authentication.
+	 * Expects username and password in the request body.
+	 */
+	@PostMapping("/login")
+	public ResponseEntity<String> login(@RequestBody User loginRequest) {
+		String token = authService.login(loginRequest.getUsername(), loginRequest.getPassword());
+		return ResponseEntity.ok(token);
+	}
 
-	        // Create new user
-	        User user = new User();
-	        user.setUsername(signupRequest.getUsername());
-	        user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-
-	        // Assign roles or set default role
-	        if (signupRequest.getRoles() == null || signupRequest.getRoles().isEmpty()) {
-	            user.setRoles(new HashSet<>(Set.of("USER"))); // Default role
-	        } else {
-	            user.setRoles(signupRequest.getRoles());
-	        }
-
-	        // Save user to the database
-	        userRepository.save(user);
-
-	        return "User registered successfully!";
-	    }
+	/**
+	 * Signup endpoint for user registration.
+	 * Expects username, password, and roles in the request body.
+	 */
+	@PostMapping("/signup")
+	public ResponseEntity<String> signup(@RequestBody User signupRequest) {
+		String response = authService.signup(signupRequest);
+		return ResponseEntity.ok(response);
+	}
 }

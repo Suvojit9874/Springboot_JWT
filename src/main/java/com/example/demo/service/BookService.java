@@ -1,11 +1,12 @@
 package com.example.demo.service;
 
-import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import com.example.demo.models.Book;
 import com.example.demo.repository.BookRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BookService {
@@ -21,11 +22,24 @@ public class BookService {
         return bookRepository.findById(id);
     }
 
-    public Book saveBook(Book book) {
+    public Book createBook(Book book) {
         return bookRepository.save(book);
     }
 
-    public void deleteBook(Long id) {
-        bookRepository.deleteById(id);
+    public Optional<Book> updateBook(Long id, Book bookDetails) {
+        return bookRepository.findById(id).map(existingBook -> {
+            existingBook.setTitle(bookDetails.getTitle());
+            existingBook.setAuthor(bookDetails.getAuthor());
+            existingBook.setDescription(bookDetails.getDescription());
+            return bookRepository.save(existingBook);
+        });
+    }
+
+    public boolean deleteBook(Long id) {
+        if (bookRepository.existsById(id)) {
+            bookRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

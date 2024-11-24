@@ -7,11 +7,19 @@ import java.util.Collection;
 
 public class JwtAuthenticationToken extends UsernamePasswordAuthenticationToken {
 
-    public JwtAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
+    private final String token;  // Add a field for the raw JWT token
+
+    public JwtAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities, String token) {
         super(principal, credentials, authorities);
+        this.token = token;
     }
 
-    public JwtAuthenticationToken(Object principal, Object credentials) {
+    public JwtAuthenticationToken(Object principal, Object credentials, String token) {
         super(principal, credentials);
+        this.token = token;
+    }
+
+    public String getToken() {
+        return token;
     }
 }
