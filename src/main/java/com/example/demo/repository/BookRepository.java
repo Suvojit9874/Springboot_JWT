@@ -7,4 +7,5 @@ import com.example.demo.models.Book;
 
 public interface BookRepository extends JpaRepository<Book, Long>{
 
+    Book getBookModelById(Long id);
 }

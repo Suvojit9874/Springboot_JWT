@@ -7,7 +7,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Data
@@ -26,27 +25,23 @@ public class User {
 	@Column(nullable = false)
 	private String password;
 
-	@ElementCollection(fetch = FetchType.EAGER)
-	@CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-	@Enumerated(EnumType.STRING) // Use EnumType.STRING to persist enums as strings in the database
-	@Column(name = "role")
-	private Set<Role> roles; // Set of roles (e.g., ROLE_ADMIN, ROLE_USER)
+	@Enumerated(EnumType.STRING) // Store the user's role as a string (e.g., "ROLE_ADMIN", "ROLE_USER")
+	@Column(nullable = false)
+	private Role role;  // Store the user's role using the Role enum
 
 	/**
-	 * Constructor for creating a new user instance with a set of roles.
+	 * Constructor for creating a new user instance with a role.
 	 */
-	public User(String username, String password, Set<Role> roles) {
+	public User(String username, String password, Role role) {
 		this.username = username;
 		this.password = password;
-		this.roles = roles;
+		this.role = role;
 	}
 
 	/**
-	 * Returns the granted authorities for the user based on their roles.
+	 * Returns the granted authorities for the user based on their role.
 	 */
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return roles.stream()
-				.map(role -> new SimpleGrantedAuthority(role.name())) // Map Role enum to authority names
-				.collect(Collectors.toSet());
+		return Set.of(new SimpleGrantedAuthority(role.name())); // Grant authority based on the single role
 	}
 }
